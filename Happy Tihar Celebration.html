@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Tihar - The Festival of Hindu</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Poppins:wght@300;400;600;700&family=Yatra+One&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0b021a;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+        .font-yatra {
+            font-family: 'Yatra One', cursive;
+        }
+        
+        /* Glow animations */
+        @keyframes diyaGlow {
+            0%, 100% {
+                filter: drop-shadow(0 0 12px rgba(255, 153, 0, 0.9)) drop-shadow(0 0 25px rgba(255, 87, 34, 0.7));
+                transform: scale(1);
+            }
+            50% {
+                filter: drop-shadow(0 0 22px rgba(255, 204, 0, 1)) drop-shadow(0 0 40px rgba(255, 111, 0, 0.9));
+                transform: scale(1.05);
+            }
+        }
+        .animate-diya-glow {
+            animation: diyaGlow 2s infinite ease-in-out;
+        }
+
+        @keyframes flameFlicker {
+            0%, 100% { transform: scale(1) rotate(-1deg); opacity: 0.9; }
+            25% { transform: scale(1.1) rotate(1deg); opacity: 1; }
+            50% { transform: scale(0.95) rotate(-2deg); opacity: 0.85; }
+            75% { transform: scale(1.05) rotate(2deg); opacity: 1; }
+        }
+        .flame-flicker {
+            animation: flameFlicker 0.25s infinite ease-in-out;
+            transform-origin: bottom center;
+        }
+
+        /* Rangoli rotation */
+        @keyframes rotateSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .rotate-slow {
+            animation: rotateSlow 40s linear infinite;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b021a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f59e0b;
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d97706;
+        }
+
+        /* Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 215, 0, 0.15);
+        }
+        .glass-card-hover {
+            transition: all 0.3s ease;
+        }
+        .glass-card-hover:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 215, 0, 0.4);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+        }
+    </style>
+</head>
+<body class="relative">
+
+    <!-- Fireworks Overlay Canvas -->
+    <canvas id="fireworksCanvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-50"></canvas>
+
+    <!-- Ambient Glowing Orbs -->
+    <div class="fixed top-20 left-10 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="fixed bottom-20 right-10 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-40 glass-card border-b border-amber-500/20 px-4 md:px-8 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="scrollToTop()">
+            <svg class="w-8 h-8 text-amber-400 animate-diya-glow" viewBox="0 0 100 100" fill="currentColor">
+                <path d="M50 15 C45 35, 30 45, 50 65 C70 45, 55 35, 50 15 Z" fill="#ff9900" class="flame-flicker" />
+                <path d="M15 60 C15 85, 85 85, 85 60 C75 72, 25 72, 15 60 Z" fill="#d97706" />
+            </svg>
+            <span class="font-yatra text-2xl text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-400 to-amber-500">
+                Happy Tihar
+            </span>
+        </div>
+        
+        <div class="hidden md:flex items-center space-x-6 font-medium text-sm">
+            <a href="#about" class="hover:text-amber-400 transition-colors">About Tihar</a>
+            <a href="#five-days" class="hover:text-amber-400 transition-colors">5 Days of Tihar</a>
+            <a href="#rangoli" class="hover:text-amber-400 transition-colors">Interactive Rangoli</a>
+            <a href="#wishes" class="hover:text-amber-400 transition-colors">Send Wishes</a>
+            <a href="#quiz" class="hover:text-amber-400 transition-colors">Tihar Quiz</a>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <button id="musicToggle" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-1.5 rounded-full text-xs sm:text-sm flex items-center gap-2 transition-all">
+                <i class="fas fa-music" id="musicIcon"></i>
+                <span id="musicText">Play Music</span>
+            </button>
+            <button id="lightAllBtn" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold px-4 py-1.5 rounded-full text-xs sm:text-sm shadow-lg shadow-amber-500/30 transition-all">
+                <i class="fas fa-fire mr-1"></i> Light Diyas
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-[90vh] flex flex-col justify-center items-center text-center px-4 py-16 overflow-hidden">
+        <!-- Floating Animated Background Rangoli -->
+        <div class="absolute w-[350px] sm:w-[550px] h-[350px] sm:h-[550px] opacity-15 pointer-events-none rotate-slow">
+            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#F59E0B" d="M100,10 L115,50 L155,35 L135,70 L175,85 L140,100 L175,115 L135,130 L155,165 L115,150 L100,190 L85,150 L45,165 L65,130 L25,115 L60,100 L25,85 L65,70 L45,35 L85,50 Z" />
+                <circle cx="100" cy="100" r="30" fill="#EF4444" />
+                <circle cx="100" cy="100" r="15" fill="#10B981" />
+            </svg>
+        </div>
+
+        <div class="relative z-10 max-w-4xl mx-auto space-y-6">
+            <div class="inline-block px-4 py-1.5 rounded-full glass-card text-amber-300 text-sm font-semibold mb-2 animate-bounce">
+                ✨ Deepawali & Tihar Special Celebration ✨
+            </div>
+            
+            <h1 class="font-yatra text-5xl sm:text-7xl lg:text-8xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-400 to-orange-500 leading-tight drop-shadow-md">
+                शुभ दीपावली तथा तिहार!
+            </h1>
+            
+            <p class="text-gray-300 text-lg sm:text-xl max-w-2xl mx-auto font-light leading-relaxed">
+                Welcome to the grand festival of lights, flowers, music, and eternal love between brothers and sisters. May this Tihar illuminate your life with health, happiness, and prosperity!
+            </p>
+
+            <!-- Diya Interactive Display -->
+            <div class="flex justify-center items-center space-x-6 sm:space-x-12 py-8">
+                <!-- Diya 1 -->
+                <div class="diya-item cursor-pointer text-center group" onclick="toggleDiya(this)">
+                    <div class="relative inline-block">
+                        <div class="flame opacity-0 transition-opacity duration-500 w-6 h-10 bg-gradient-to-t from-orange-500 via-amber-300 to-yellow-100 rounded-full mx-auto -mb-2 flame-flicker"></div>
+                        <svg class="w-16 h-12 text-amber-700 transition-colors duration-300" viewBox="0 0 100 60" fill="currentColor">
+                            <path d="M10 20 Q50 60 90 20 Q50 35 10 20 Z" />
+                        </svg>
+                    </div>
+                    <p class="text-xs text-amber-400/70 mt-1 group-hover:text-amber-300">Tap to Light</p>
+                </div>
+
+                <!-- Main Diya -->
+                <div class="diya-item cursor-pointer text-center group scale-125" onclick="toggleDiya(this)">
+                    <div class="relative inline-block">
+                        <div class="flame opacity-100 transition-opacity duration-500 w-8 h-12 bg-gradient-to-t from-red-500 via-amber-400 to-yellow-100 rounded-full mx-auto -mb-2 flame-flicker animate-diya-glow"></div>
+                        <svg class="w-20 h-14 text-amber-600 transition-colors duration-300" viewBox="0 0 100 60" fill="currentColor">
+                            <path d="M10 20 Q50 60 90 20 Q50 35 10 20 Z" />
+                        </svg>
+                    </div>
+                    <p class="text-xs text-amber-400/90 mt-1 font-semibold">Center Light</p>
+                </div>
+
+                <!-- Diya 3 -->
+                <div class="diya-item cursor-pointer text-center group" onclick="toggleDiya(this)">
+                    <div class="relative inline-block">
+                        <div class="flame opacity-0 transition-opacity duration-500 w-6 h-10 bg-gradient-to-t from-orange-500 via-amber-300 to-yellow-100 rounded-full mx-auto -mb-2 flame-flicker"></div>
+                        <svg class="w-16 h-12 text-amber-700 transition-colors duration-300" viewBox="0 0 100 60" fill="currentColor">
+                            <path d="M10 20 Q50 60 90 20 Q50 35 10 20 Z" />
+                        </svg>
+                    </div>
+                    <p class="text-xs text-amber-400/70 mt-1 group-hover:text-amber-300">Tap to Light</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-4 pt-4">
+                <button onclick="triggerFireworks()" class="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white font-bold px-8 py-3.5 rounded-full shadow-lg shadow-orange-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+                    <i class="fas fa-sparkles"></i> Launch Fireworks
+                </button>
+                <a href="#five-days" class="glass-card hover:bg-white/10 border border-amber-500/30 text-amber-300 font-semibold px-8 py-3.5 rounded-full transition-all">
+                    Explore Festival Days
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="max-w-6xl mx-auto px-4 py-16">
+        <div class="glass-card rounded-3xl p-8 sm:p-12 relative overflow-hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="space-y-4">
+                    <span class="text-amber-400 uppercase tracking-widest text-xs font-semibold">Festival Significance</span>
+                    <h2 class="font-cinzel text-3xl sm:text-4xl font-bold text-amber-200">The 5-Day Festival of Lights</h2>
+                    <p class="text-gray-300 text-sm sm:text-base leading-relaxed">
+                        Tihar, also known as Deepawali or Yamapanchak, is one of the grandest Hindu festivals celebrated predominantly in Nepal and parts of India. Over five days, it honors the divine bond between humans, animals, nature, and gods.
+                    </p>
+                    <p class="text-gray-300 text-sm sm:text-base leading-relaxed">
+                        Houses are decorated with colorful marigold garlands (Sayapatri), glittering oil lamps (Diyas), intricate Rangolis, and bright LED lights to welcome Goddess Laxmi—the deity of wealth and prosperity.
+                    </p>
+                    <div class="flex items-center space-x-4 pt-2">
+                        <div class="text-center p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                            <span class="block text-2xl font-bold text-amber-400">5</span>
+                            <span class="text-xs text-gray-400">Sacred Days</span>
+                        </div>
+                        <div class="text-center p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                            <span class="block text-2xl font-bold text-amber-400">🌼</span>
+                            <span class="text-xs text-gray-400">Marigolds</span>
+                        </div>
+                        <div class="text-center p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                            <span class="block text-2xl font-bold text-amber-400">🪔</span>
+                            <span class="text-xs text-gray-400">Diyas</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Graphic Card / Illustration -->
+                <div class="relative flex justify-center">
+                    <div class="w-full max-w-sm aspect-square glass-card rounded-2xl p-6 border border-amber-500/30 flex flex-col justify-between items-center text-center relative group">
+                        <div class="absolute inset-0 bg-gradient-to-tr from-amber-500/10 to-purple-600/10 rounded-2xl"></div>
+                        <i class="fas fa-om text-6xl text-amber-400 my-auto animate-pulse"></i>
+                        <div class="relative z-10">
+                            <h3 class="font-yatra text-2xl text-amber-300 mb-1">Goddess Laxmi Puja</h3>
+                            <p class="text-xs text-gray-300">Welcoming light, peace, and abundance into our homes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5 Days of Tihar Section -->
+    <section id="five-days" class="max-w-6xl mx-auto px-4 py-16">
+        <div class="text-center mb-12 space-y-2">
+            <span class="text-amber-400 uppercase tracking-widest text-xs font-semibold">Yama Panchak Celebration</span>
+            <h2 class="font-cinzel text-3xl sm:text-5xl font-bold text-amber-100">The 5 Days of Tihar</h2>
+            <p class="text-gray-400 text-sm sm:text-base max-w-2xl mx-auto">Click on each day to explore the rituals and cultural significance.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Day 1 -->
+            <div class="glass-card glass-card-hover rounded-2xl p-6 cursor-pointer" onclick="openModal('day1')">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Day 1</span>
+                    <span class="text-3xl">🐦</span>
+                </div>
+                <h3 class="font-cinzel text-xl font-bold text-amber-200 mb-2">Kaag Tihar</h3>
+                <p class="text-xs text-amber-400/80 mb-3 font-semibold">Worship of Crows</p>
+                <p class="text-gray-300 text-sm line-clamp-3">Crows are revered as messengers of Yama, the god of death. Delicacies and grains are placed on roofs for them.</p>
+                <div class="mt-4 text-xs text-amber-400 font-semibold flex items-center gap-1">
+                    Read More <i class="fas fa-arrow-right text-[10px]"></i>
+                </div>
+            </div>
+
+            <!-- Day 2 -->
+            <div class="glass-card glass-card-hover rounded-2xl p-6 cursor-pointer" onclick="openModal('day2')">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Day 2</span>
+                    <span class="text-3xl">🐕</span>
+                </div>
+                <h3 class="font-cinzel text-xl font-bold text-amber-200 mb-2">Kukur Tihar</h3>
+                <p class="text-xs text-amber-400/80 mb-3 font-semibold">Worship of Dogs</p>
+                <p class="text-gray-300 text-sm line-clamp-3">Dogs are honored for their loyalty and guardianship with garlands of marigolds, red Tika, and delicious food.</p>
+                <div class="mt-4 text-xs text-amber-400 font-semibold flex items-center gap-1">
+                    Read More <i class="fas fa-arrow-right text-[10px]"></i>
+                </div>
+            </div>
+
+            <!-- Day 3 -->
+            <div class="glass-card glass-card-hover rounded-2xl p-6 cursor-pointer" onclick="openModal('day3')">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Day 3</span>
+                    <span class="text-3xl">🐄</span>
+                </div>
+                <h3 class="font-cinzel text-xl font-bold text-amber-200 mb-2">Gai Tihar & Laxmi Puja</h3>
+                <p class="text-xs text-amber-400/80 mb-3 font-semibold">Worship of Cows & Goddess Laxmi</p>
+                <p class="text-gray-300 text-sm line-clamp-3">In the morning cows are worshipped. Evening brings Laxmi Puja, lighting diyas to welcome wealth and prosperity.</p>
+                <div class="mt-4 text-xs text-amber-400 font-semibold flex items-center gap-1">
+                    Read More <i class="fas fa-arrow-right text-[10px]"></i>
+                </div>
+            </div>
+
+            <!-- Day 4 -->
+            <div class="glass-card glass-card-hover rounded-2xl p-6 cursor-pointer" onclick="openModal('day4')">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Day 4</span>
+                    <span class="text-3xl">🐂</span>
+                </div>
+                <h3 class="font-cinzel text-xl font-bold text-amber-200 mb-2">Govardhan Puja & Mha Puja</h3>
+                <p class="text-xs text-amber-400/80 mb-3 font-semibold">Worship of Oxen & Self-Worship</p>
+                <p class="text-gray-300 text-sm line-clamp-3">Oxen are worshipped, and the Newar community celebrates Mha Puja (worship of oneself and soul purification).</p>
+                <div class="mt-4 text-xs text-amber-400 font-semibold flex items-center gap-1">
+                    Read More <i class="fas fa-arrow-right text-[10px]"></i>
+                </div>
+            </div>
+
+            <!-- Day 5 -->
+            <div class="glass-card glass-card-hover rounded-2xl p-6 cursor-pointer md:col-span-2 lg:col-span-1" onclick="openModal('day5')">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Day 5</span>
+                    <span class="text-3xl">🌺</span>
+                </div>
+                <h3 class="font-cinzel text-xl font-bold text-amber-200 mb-2">Bhai Tika</h3>
+                <p class="text-xs text-amber-400/80 mb-3 font-semibold">Sister-Brother Bonding</p>
+                <p class="text-gray-300 text-sm line-clamp-3">Sisters apply Seven-Color Tika (Saptarangi Tika) and garlands (Makhamali) on their brothers' foreheads, wishing long life.</p>
+                <div class="mt-4 text-xs text-amber-400 font-semibold flex items-center gap-1">
+                    Read More <i class="fas fa-arrow-right text-[10px]"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Rangoli Canvas Section -->
+    <section id="rangoli" class="max-w-6xl mx-auto px-4 py-16">
+        <div class="glass-card rounded-3xl p-6 sm:p-10 border border-amber-500/30">
+            <div class="text-center mb-8 space-y-2">
+                <span class="text-amber-400 uppercase tracking-widest text-xs font-semibold">Digital Creativity</span>
+                <h2 class="font-cinzel text-3xl sm:text-4xl font-bold text-amber-100">Draw Your Digital Rangoli</h2>
+                <p class="text-gray-300 text-sm max-w-xl mx-auto">Use symmetrical pattern brushes and vivid festivity colors to design your own Rangoli floor art!</p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-6 items-center justify-center">
+                <!-- Controls Sidebar -->
+                <div class="w-full lg:w-64 glass-card p-4 rounded-2xl space-y-4">
+                    <div>
+                        <label class="text-xs font-semibold text-amber-300 block mb-2">Select Powder Color</label>
+                        <div class="flex flex-wrap gap-2" id="colorPickerContainer">
+                            <button class="w-8 h-8 rounded-full bg-yellow-400 border-2 border-white focus:scale-110 transition-transform" onclick="setRangoliColor('#facc15')"></button>
+                            <button class="w-8 h-8 rounded-full bg-red-500 border-2 border-white focus:scale-110 transition-transform" onclick="setRangoliColor('#ef4444')"></button>
+                            <button class="w-8 h-8 rounded-full bg-pink-500 border-2 border-white focus:scale-110 transition-transform" onclick="setRangoliColor('#ec4899')"></button>
+                            <button class="w-8 h-8 rounded-full bg-orange-500 border-2 border-white focus:scale-110 transition-transform" onclick="setRangoliColor('#f97316')"></button>
+                            <button class="w-8 h-8 rounded-full bg-emerald-400 border-2 border-white focus:scale-110 transition-transform" onclick="setRangoliColor('#34d399')"></button>
+                            <button class="w-8 h-8 rounded-full bg-blue-400 border-2 border-white focus:scale-110 transition-transform" onclick="setRangoliColor('#60a5fa')"></button>
+                            <button class="w-8 h-8 rounded-full bg-purple-500 border-2 border-white focus:scale-110 transition-transform" onclick="setRangoliColor('#a855f7')"></button>
+                            <button class="w-8 h-8 rounded-full bg-white border-2 border-white focus:scale-110 transition-transform" onclick="setRangoliColor('#ffffff')"></button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-amber-300 block mb-2">Symmetry Points: <span id="symmetryValue">8</span></label>
+                        <input type="range" id="symmetrySlider" min="2" max="16" value="8" step="2" class="w-full accent-amber-500" oninput="document.getElementById('symmetryValue').innerText = this.value">
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-amber-300 block mb-2">Brush Size: <span id="brushSizeValue">4</span>px</label>
+                        <input type="range" id="brushSizeSlider" min="1" max="12" value="4" class="w-full accent-amber-500" oninput="document.getElementById('brushSizeValue').innerText = this.value">
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <button onclick="clearRangoliCanvas()" class="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 py-2 rounded-xl text-xs font-semibold transition-all">
+                            <i class="fas fa-trash-alt mr-1"></i> Clear
+                        </button>
+                        <button onclick="downloadRangoli()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-900 py-2 rounded-xl text-xs font-bold transition-all">
+                            <i class="fas fa-download mr-1"></i> Save
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Canvas Area -->
+                <div class="relative w-full max-w-[450px] aspect-square rounded-2xl overflow-hidden border-2 border-amber-500/40 bg-slate-950 shadow-2xl">
+                    <canvas id="rangoliCanvas" class="w-full h-full cursor-crosshair"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Wishes & Greetings Generator Section -->
+    <section id="wishes" class="max-w-4xl mx-auto px-4 py-16">
+        <div class="glass-card rounded-3xl p-8 sm:p-12 border border-amber-500/30 text-center">
+            <span class="text-amber-400 uppercase tracking-widest text-xs font-semibold">Festive Greetings</span>
+            <h2 class="font-cinzel text-3xl sm:text-4xl font-bold text-amber-100 mb-4">Send Tihar Wishes</h2>
+            <p class="text-gray-300 text-sm mb-8">Generate customized Tihar greeting cards to share with your loved ones!</p>
+
+            <!-- Card Preview Box -->
+            <div id="greetingCard" class="bg-gradient-to-br from-amber-950/80 via-purple-950/80 to-slate-950 border-2 border-amber-400/50 rounded-2xl p-6 sm:p-10 mb-6 text-center relative overflow-hidden shadow-2xl">
+                <div class="absolute top-2 left-2 text-2xl">🌼</div>
+                <div class="absolute top-2 right-2 text-2xl">🌼</div>
+                <div class="absolute bottom-2 left-2 text-2xl">🪔</div>
+                <div class="absolute bottom-2 right-2 text-2xl">🪔</div>
+
+                <p class="text-xs text-amber-400 font-semibold mb-2">HAPPY TIHAR GREETING</p>
+                <h3 id="cardRecipient" class="font-yatra text-2xl sm:text-3xl text-amber-200 mb-4">Dear Friend,</h3>
+                <p id="cardMessage" class="text-gray-200 text-base sm:text-lg italic font-light max-w-xl mx-auto leading-relaxed">
+                    "May the warmth and light of Diyas fill your home with joy, health, and endless prosperity. Happy Tihar & Deepawali!"
+                </p>
+                <p id="cardSender" class="text-sm font-semibold text-amber-400 mt-6">- Warm regards from Your Friend</p>
+            </div>
+
+            <!-- Card Form Inputs -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto mb-6">
+                <input type="text" id="recipientInput" placeholder="Recipient's Name" class="bg-slate-900/80 border border-amber-500/30 rounded-xl px-4 py-3 text-sm text-gray-200 focus:outline-none focus:border-amber-400" oninput="updateCard()">
+                <input type="text" id="senderInput" placeholder="Your Name" class="bg-slate-900/80 border border-amber-500/30 rounded-xl px-4 py-3 text-sm text-gray-200 focus:outline-none focus:border-amber-400" oninput="updateCard()">
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-3">
+                <button onclick="generateRandomWish()" class="bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 px-5 py-2.5 rounded-full text-xs font-semibold transition-all">
+                    🎲 Random Wishes
+                </button>
+                <button onclick="copyGreeting()" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-bold px-6 py-2.5 rounded-full text-xs shadow-lg transition-all">
+                    📋 Copy Wish Text
+                </button>
+            </div>
+            <p id="copyAlert" class="text-xs text-emerald-400 mt-2 opacity-0 transition-opacity">Wish text copied to clipboard!</p>
+        </div>
+    </section>
+
+    <!-- Interactive Quiz Section -->
+    <section id="quiz" class="max-w-4xl mx-auto px-4 py-16">
+        <div class="glass-card rounded-3xl p-6 sm:p-10 border border-amber-500/30">
+            <div class="text-center mb-6">
+                <span class="text-amber-400 uppercase tracking-widest text-xs font-semibold">Test Your Knowledge</span>
+                <h2 class="font-cinzel text-3xl font-bold text-amber-100">Tihar Culture Quiz</h2>
+            </div>
+
+            <div id="quizContainer" class="space-y-6">
+                <div class="bg-slate-900/60 p-6 rounded-2xl border border-amber-500/20">
+                    <p id="quizQuestion" class="text-lg font-semibold text-amber-200 mb-4">Loading question...</p>
+                    <div id="quizOptions" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Options generated dynamically -->
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center text-xs text-gray-400 px-2">
+                    <span>Score: <strong id="quizScore" class="text-amber-400">0</strong></span>
+                    <span id="quizProgress">Question 1 of 5</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Detail Box -->
+    <div id="dayModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex justify-center items-center p-4">
+        <div class="glass-card bg-slate-900/90 border border-amber-500/40 rounded-3xl p-6 sm:p-8 max-w-xl w-full relative space-y-4">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
+                <i class="fas fa-times"></i>
+            </button>
+            <span id="modalDayTag" class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30"></span>
+            <h3 id="modalTitle" class="font-cinzel text-2xl font-bold text-amber-200"></h3>
+            <p id="modalDescription" class="text-gray-300 text-sm leading-relaxed"></p>
+            <div class="pt-4 flex justify-end">
+                <button onclick="closeModal()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-5 py-2 rounded-xl text-xs">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-amber-500/20 py-12 px-4 text-center glass-card mt-20">
+        <div class="max-w-4xl mx-auto space-y-4">
+            <div class="flex justify-center items-center gap-2">
+                <svg class="w-6 h-6 text-amber-400" viewBox="0 0 100 100" fill="currentColor">
+                    <path d="M50 15 C45 35, 30 45, 50 65 C70 45, 55 35, 50 15 Z" fill="#ff9900" />
+                    <path d="M15 60 C15 85, 85 85, 85 60 C75 72, 25 72, 15 60 Z" fill="#d97706" />
+                </svg>
+                <span class="font-yatra text-xl text-amber-300">Happy Tihar Festival</span>
+            </div>
+            <p class="text-xs text-gray-400">May the light of diyas banish darkness and illuminate your path with joy and success.</p>
+            <p class="text-xs text-amber-500/60 font-light">&copy; 2026 Tihar Grand Celebrations. Crafted with warmth & light.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Audio Synthesizer for Festive Background Music (Tone synthesis using Web Audio API)
+        let audioCtx = null;
+        let isPlaying = false;
+        let musicInterval = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        const melodyNotes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25]; // C, D, E, G, A, C5
+        let noteIdx = 0;
+
+        function playFestiveMelody() {
+            if (!isPlaying || !audioCtx) return;
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(melodyNotes[noteIdx], audioCtx.currentTime);
+            
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+            
+            noteIdx = (noteIdx + 1) % melodyNotes.length;
+        }
+
+        document.getElementById('musicToggle').addEventListener('click', function() {
+            initAudio();
+            isPlaying = !isPlaying;
+            const icon = document.getElementById('musicIcon');
+            const text = document.getElementById('musicText');
+
+            if (isPlaying) {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                musicInterval = setInterval(playFestiveMelody, 350);
+                icon.className = 'fas fa-pause';
+                text.innerText = 'Pause Music';
+            } else {
+                clearInterval(musicInterval);
+                icon.className = 'fas fa-music';
+                text.innerText = 'Play Music';
+            }
+        });
+
+        function toggleDiya(element) {
+            const flame = element.querySelector('.flame');
+            if (flame.classList.contains('opacity-0')) {
+                flame.classList.remove('opacity-0');
+                flame.classList.add('opacity-100');
+            } else {
+                flame.classList.remove('opacity-100');
+                flame.classList.add('opacity-0');
+            }
+        }
+
+        document.getElementById('lightAllBtn').addEventListener('click', function() {
+            const flames = document.querySelectorAll('.flame');
+            flames.forEach(flame => {
+                flame.classList.remove('opacity-0');
+                flame.classList.add('opacity-100');
+            });
+            triggerFireworks();
+        });
+
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.radius = Math.random() * 3 + 1;
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = (Math.random() - 0.5) * 8;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.02 + 0.01;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.05; // gravity
+                this.alpha -= this.decay;
+            }
+        }
+
+        function triggerFireworks() {
+            // Confetti launch
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            // Canvas fireworks
+            const colors = ['#facc15', '#ef4444', '#f97316', '#34d399', '#60a5fa', '#e879f9'];
+            const startX = Math.random() * canvas.width;
+            const startY = Math.random() * (canvas.height * 0.5);
+
+            for (let i = 0; i < 60; i++) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particles.push(new Particle(startX, startY, color));
+            }
+        }
+
+        function animateFireworks() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles = particles.filter(p => p.alpha > 0);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateFireworks);
+        }
+        animateFireworks();
+
+        const rangoliCanvas = document.getElementById('rangoliCanvas');
+        const rangoliCtx = rangoliCanvas.getContext('2d');
+        let isDrawing = false;
+        let currentColor = '#facc15';
+
+        function setupRangoliCanvas() {
+            const rect = rangoliCanvas.parentElement.getBoundingClientRect();
+            rangoliCanvas.width = rect.width;
+            rangoliCanvas.height = rect.height;
+            clearRangoliCanvas();
+        }
+
+        function setRangoliColor(color) {
+            currentColor = color;
+        }
+
+        function clearRangoliCanvas() {
+            rangoliCtx.fillStyle = '#020617';
+            rangoliCtx.fillRect(0, 0, rangoliCanvas.width, rangoliCanvas.height);
+            
+            // Draw central guide dot
+            rangoliCtx.beginPath();
+            rangoliCtx.arc(rangoliCanvas.width/2, rangoliCanvas.height/2, 4, 0, Math.PI * 2);
+            rangoliCtx.fillStyle = '#f59e0b';
+            rangoliCtx.fill();
+        }
+
+        function drawSymmetrical(x, y, prevX, prevY) {
+            const centerX = rangoliCanvas.width / 2;
+            const centerY = rangoliCanvas.height / 2;
+            const symmetry = parseInt(document.getElementById('symmetrySlider').value);
+            const size = parseInt(document.getElementById('brushSizeSlider').value);
+
+            const angleStep = (Math.PI * 2) / symmetry;
+
+            for (let i = 0; i < symmetry; i++) {
+                const angle = i * angleStep;
+
+                // Rotate start point
+                const x1 = Math.cos(angle) * (prevX - centerX) - Math.sin(angle) * (prevY - centerY) + centerX;
+                const y1 = Math.sin(angle) * (prevX - centerX) + Math.cos(angle) * (prevY - centerY) + centerY;
+
+                // Rotate end point
+                const x2 = Math.cos(angle) * (x - centerX) - Math.sin(angle) * (y - centerY) + centerX;
+                const y2 = Math.sin(angle) * (x - centerX) + Math.cos(angle) * (y - centerY) + centerY;
+
+                rangoliCtx.beginPath();
+                rangoliCtx.moveTo(x1, y1);
+                rangoliCtx.lineTo(x2, y2);
+                rangoliCtx.strokeStyle = currentColor;
+                rangoliCtx.lineWidth = size;
+                rangoliCtx.lineCap = 'round';
+                rangoliCtx.stroke();
+            }
+        }
+
+        let lastX = 0, lastY = 0;
+
+        rangoliCanvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const rect = rangoliCanvas.getBoundingClientRect();
+            lastX = e.clientX - rect.left;
+            lastY = e.clientY - rect.top;
+        });
+
+        rangoliCanvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            const rect = rangoliCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            drawSymmetrical(x, y, lastX, lastY);
+            lastX = x;
+            lastY = y;
+        });
+
+        window.addEventListener('mouseup', () => isDrawing = false);
+
+        // Touch support for Rangoli
+        rangoliCanvas.addEventListener('touchstart', (e) => {
+            isDrawing = true;
+            const rect = rangoliCanvas.getBoundingClientRect();
+            lastX = e.touches[0].clientX - rect.left;
+            lastY = e.touches[0].clientY - rect.top;
+        });
+
+        rangoliCanvas.addEventListener('touchmove', (e) => {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const rect = rangoliCanvas.getBoundingClientRect();
+            const x = e.touches[0].clientX - rect.left;
+            const y = e.touches[0].clientY - rect.top;
+            drawSymmetrical(x, y, lastX, lastY);
+            lastX = x;
+            lastY = y;
+        });
+
+        rangoliCanvas.addEventListener('touchend', () => isDrawing = false);
+
+        function downloadRangoli() {
+            const link = document.createElement('a');
+            link.download = 'my-tihar-rangoli.png';
+            link.href = rangoliCanvas.toDataURL();
+            link.click();
+        }
+
+        const wishesList = [
+            "May the divine lights of Tihar illuminate your life with joy, good health, and success!",
+            "Wishing you a bright and prosperous Tihar filled with sweet memories and laughter!",
+            "May Goddess Laxmi reside in your home and bless you with wealth and contentment.",
+            "Sending heartfelt wishes of Bhai Tika! May the sacred bond of brothers and sisters bloom forever.",
+            "May the fragrance of Marigold flowers bring pure happiness to your family this festival season!"
+        ];
+
+        function updateCard() {
+            const recipient = document.getElementById('recipientInput').value.trim();
+            const sender = document.getElementById('senderInput').value.trim();
+
+            document.getElementById('cardRecipient').innerText = recipient ? `Dear ${recipient},` : "Dear Friend,";
+            document.getElementById('cardSender').innerText = sender ? `- Warm regards from ${sender}` : "- Warm regards from Your Friend";
+        }
+
+        function generateRandomWish() {
+            const randomWish = wishesList[Math.floor(Math.random() * wishesList.length)];
+            document.getElementById('cardMessage').innerText = `"${randomWish}"`;
+        }
+
+        function copyGreeting() {
+            const recipient = document.getElementById('cardRecipient').innerText;
+            const message = document.getElementById('cardMessage').innerText;
+            const sender = document.getElementById('cardSender').innerText;
+
+            const fullText = `${recipient}\n\n${message}\n\n${sender}\n\n✨ Happy Tihar! ✨`;
+            
+            const textarea = document.createElement('textarea');
+            textarea.value = fullText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            const alert = document.getElementById('copyAlert');
+            alert.classList.remove('opacity-0');
+            setTimeout(() => alert.classList.add('opacity-0'), 2500);
+        }
+
+        const dayDetails = {
+            day1: {
+                tag: "Day 1 - Crow Worship",
+                title: "Kaag Tihar (Crow Worship)",
+                desc: "Kaag Tihar marks the beginning of Yama Panchak. Crows are regarded as messengers of Yama Raj, the God of Death. People place various food items, grains, and sweets on their rooftops early in the morning. Worshipping crows is believed to avert grief and bad news in the coming year."
+            },
+            day2: {
+                tag: "Day 2 - Dog Worship",
+                title: "Kukur Tihar (Dog Worship)",
+                desc: "Kukur Tihar is dedicated to celebrating the human-animal bond, specifically honoring dogs for their loyalty, protection, and companionship. Dogs are decorated with floral garlands made of marigolds (Sayapatri), applied with red Tika on their foreheads, and served delicious meat and treats."
+            },
+            day3: {
+                tag: "Day 3 - Cow & Laxmi Worship",
+                title: "Gai Tihar & Laxmi Puja",
+                desc: "On the morning of the third day, cows—symbolizing motherly warmth, purity, and prosperity—are worshipped. In the evening, homes are thoroughly cleaned and decorated with oil lamps (Diyas), light strings, and intricate Rangoli footprints guiding Goddess Laxmi into the house for wealth and peace."
+            },
+            day4: {
+                tag: "Day 4 - Govardhan & Mha Puja",
+                title: "Govardhan Puja & Mha Puja",
+                desc: "This day involves worshipping oxen, which are essential for agriculture. Additionally, the Newar community celebrates 'Mha Puja' (Self-Worship), dedicated to purifying the soul, reflecting on self-worth, and welcoming the Newari New Year (Nepal Sambat)."
+            },
+            day5: {
+                tag: "Day 5 - Sister-Brother Bonding",
+                title: "Bhai Tika",
+                desc: "The most emotional and grand finale of Tihar! Sisters apply a special Seven-Color Tika (Saptarangi Tika) on their brothers' foreheads, adorn them with everlasting Gomphrena (Makhamali) garlands, and pray to Yama Raj for their longevity and prosperity. Brothers offer gifts, protection promises, and blessings."
+            }
+        };
+
+        function openModal(dayKey) {
+            const data = dayDetails[dayKey];
+            if (!data) return;
+            document.getElementById('modalDayTag').innerText = data.tag;
+            document.getElementById('modalTitle').innerText = data.title;
+            document.getElementById('modalDescription').innerText = data.desc;
+            document.getElementById('dayModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('dayModal').classList.add('hidden');
+        }
+
+        const quizData = [
+            {
+                q: "Which bird is worshipped on the first day of Tihar?",
+                options: ["Peacock", "Crow", "Pigeon", "Parrot"],
+                correct: 1
+            },
+            {
+                q: "What flower garland is traditionally worn during Bhai Tika for long life?",
+                options: ["Rose", "Sunflower", "Makhamali (Gomphrena)", "Lotus"],
+                correct: 2
+            },
+            {
+                q: "Which Goddess of Wealth is worshipped during the evening of Gai Tihar?",
+                options: ["Goddess Saraswati", "Goddess Laxmi", "Goddess Durga", "Goddess Parvati"],
+                correct: 1
+            },
+            {
+                q: "Which festival community celebrates 'Mha Puja' (Self-Worship) on the 4th day?",
+                options: ["Gurung", "Newar", "Tharu", "Tamang"],
+                correct: 1
+            },
+            {
+                q: "How many colors are traditionally in the Saptarangi Tika applied during Bhai Tika?",
+                options: ["3", "5", "7", "9"],
+                correct: 2
+            }
+        ];
+
+        let currentQIndex = 0;
+        let score = 0;
+
+        function loadQuizQuestion() {
+            const qObj = quizData[currentQIndex];
+            document.getElementById('quizQuestion').innerText = `${currentQIndex + 1}. ${qObj.q}`;
+            document.getElementById('quizProgress').innerText = `Question ${currentQIndex + 1} of ${quizData.length}`;
+            
+            const optionsContainer = document.getElementById('quizOptions');
+            optionsContainer.innerHTML = '';
+
+            qObj.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "bg-slate-800/80 hover:bg-amber-500/20 border border-amber-500/30 text-gray-200 hover:text-amber-300 font-medium py-3 px-4 rounded-xl text-xs sm:text-sm text-left transition-all flex items-center justify-between";
+                btn.innerHTML = `<span>${opt}</span> <i class="far fa-circle text-xs text-amber-500/50"></i>`;
+                btn.onclick = () => selectQuizAnswer(idx, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function selectQuizAnswer(selectedIndex, btnElement) {
+            const qObj = quizData[currentQIndex];
+            const allBtns = document.getElementById('quizOptions').children;
+
+            // Disable all buttons after pick
+            for (let b of allBtns) {
+                b.disabled = true;
+            }
+
+            if (selectedIndex === qObj.correct) {
+                btnElement.classList.add('bg-emerald-500/30', 'border-emerald-500', 'text-emerald-200');
+                score++;
+                document.getElementById('quizScore').innerText = score;
+            } else {
+                btnElement.classList.add('bg-red-500/30', 'border-red-500', 'text-red-200');
+                allBtns[qObj.correct].classList.add('bg-emerald-500/30', 'border-emerald-500', 'text-emerald-200');
+            }
+
+            setTimeout(() => {
+                currentQIndex++;
+                if (currentQIndex < quizData.length) {
+                    loadQuizQuestion();
+                } else {
+                    showQuizResult();
+                }
+            }, 1500);
+        }
+
+        function showQuizResult() {
+            const container = document.getElementById('quizContainer');
+            container.innerHTML = `
+                <div class="text-center py-8 space-y-4">
+                    <div class="text-5xl">🎉</div>
+                    <h3 class="font-cinzel text-2xl font-bold text-amber-200">Quiz Completed!</h3>
+                    <p class="text-gray-300 text-sm">You scored <strong class="text-amber-400 text-lg">${score}</strong> out of <strong class="text-gray-200">${quizData.length}</strong></p>
+                    <button onclick="resetQuiz()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-2.5 rounded-full text-xs shadow-lg transition-all">
+                        <i class="fas fa-redo mr-1"></i> Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        function resetQuiz() {
+            currentQIndex = 0;
+            score = 0;
+            document.getElementById('quizScore').innerText = '0';
+            document.getElementById('quizContainer').innerHTML = `
+                <div class="bg-slate-900/60 p-6 rounded-2xl border border-amber-500/20">
+                    <p id="quizQuestion" class="text-lg font-semibold text-amber-200 mb-4">Loading question...</p>
+                    <div id="quizOptions" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                </div>
+                <div class="flex justify-between items-center text-xs text-gray-400 px-2">
+                    <span>Score: <strong id="quizScore" class="text-amber-400">0</strong></span>
+                    <span id="quizProgress">Question 1 of 5</span>
+                </div>
+            `;
+            loadQuizQuestion();
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Initialize canvas & quiz on load
+        window.onload = function() {
+            setupRangoliCanvas();
+            loadQuizQuestion();
+        };
+    </script>
+</body>
+</html>
